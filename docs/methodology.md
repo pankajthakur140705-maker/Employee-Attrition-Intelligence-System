@@ -6,276 +6,230 @@
 
 # 1. Introduction
 
-The Employee Attrition Intelligence System is an AI-powered HR analytics platform designed to predict employee attrition and provide actionable retention strategies.
+The Employee Attrition Intelligence System is designed to predict employee attrition risk and assist Human Resource (HR) teams in making proactive retention decisions.
 
-The system combines:
+The methodology combines:
 
+- Data Preprocessing
+- Feature Engineering
 - Machine Learning
 - Explainable AI
-- HR Analytics
-- Generative AI (Gemini)
-
-to assist HR professionals in identifying employees at risk of leaving an organization.
+- Recommendation Generation
+- What-If Analysis
+- Generative AI
 
 ---
 
-# 2. Dataset
+# 2. Dataset Description
 
-## Dataset Used
+Dataset Used:
 
 IBM HR Analytics Employee Attrition Dataset
 
-## Dataset Characteristics
+Dataset Characteristics:
 
-| Attribute       | Value                 |
-|-----------------|-----------------------|
-| Employees       | 1470                  |
-| Features        | 35+                   |
-| Target Variable | Attrition             |
-| Type            | Binary Classification |
+- Total Records: 1470
+- Features: 45+
+- Target Variable: Attrition
 
 Target Classes:
 
-- Attrition = Yes
-- Attrition = No
+| Attrition Value | Meaning                 |
+|-----------------|-------------------------|
+| Yes             | Employee likely to leave|
+| No              | Employee likely to stay |
 
 ---
 
 # 3. Data Preprocessing
 
-Raw employee data cannot be directly used by machine learning algorithms.
+The raw dataset undergoes preprocessing before model training.
 
-The following preprocessing steps were performed:
+Steps:
 
-### 3.1 Missing Value Handling
+### 3.1 Data Cleaning
 
-- Dataset inspected for null values
-- No significant missing values found
+- Missing value inspection
+- Data validation
+- Duplicate checking
 
-### 3.2 Encoding
+### 3.2 Target Variable Encoding
 
-Categorical variables converted using:
+Attrition values are converted:
 
-- One-Hot Encoding
+```python
+Yes → 1
+No → 0
+```
+
+### 3.3 Feature Encoding
+
+Categorical features are transformed using:
+
+```text
+One-Hot Encoding
+```
 
 Examples:
 
-- OverTime
-- JobRole
-- MaritalStatus
-- Department
-
----
-
-### 3.3 Feature Alignment
-
-Features were aligned with trained model columns using:
-
-```python
-reindex(columns=feature_columns)
+```text
+Gender
+Department
+BusinessTravel
+JobRole
+OverTime
 ```
 
-This ensures prediction inputs match training data.
+### 3.4 Feature Alignment
 
----
+Input features are aligned with trained model columns using:
 
-### 3.4 Scaling
+```python
+reindex()
+```
 
-Numerical features were normalized using:
+### 3.5 Feature Scaling
+
+Numerical attributes are normalized using:
 
 ```text
 StandardScaler
 ```
 
-Features scaled:
-
-- Age
-- MonthlyIncome
-- DistanceFromHome
-- YearsSinceLastPromotion
-
 ---
 
 # 4. Feature Engineering
 
-The following employee attributes were selected as important predictors:
+The processed dataset contains employee attributes including:
 
 - Age
 - Monthly Income
 - Distance From Home
-- OverTime
 - Job Satisfaction
-- Work Life Balance
 - Environment Satisfaction
+- Work Life Balance
 - Years Since Last Promotion
-- Job Role
+- OverTime
 
-These features significantly influence employee retention behavior.
-
----
-
-# 5. Machine Learning Model
-
-## Selected Algorithm
-
-XGBoost Classifier
-
-### Why XGBoost?
-
-- High predictive accuracy
-- Handles structured HR data effectively
-- Prevents overfitting
-- Fast training and prediction
-- Supports feature importance analysis
+These features are transformed into model-ready numerical inputs.
 
 ---
 
-## Classification Objective
+# 5. Machine Learning Methodology
 
-Predict:
+Three machine learning algorithms were evaluated.
+
+## Models Evaluated
+
+### Logistic Regression
+
+Used as a baseline classification model.
+
+Advantages:
+
+- Fast training
+- Easy interpretation
+
+---
+
+### Random Forest
+
+Ensemble learning algorithm based on decision trees.
+
+Advantages:
+
+- Handles nonlinear relationships
+- Robust to overfitting
+
+---
+
+### XGBoost
+
+Gradient Boosting based ensemble algorithm.
+
+Advantages:
+
+- High predictive performance
+- Efficient handling of structured data
+- Feature importance generation
+
+---
+
+# 6. Model Comparison
+
+The following models were trained and evaluated.
+
+| Model | Accuracy (%) | Precision (%) | Recall (%) | F1 Score (%) |
+|---------|---------:|---------:|---------:|---------:|
+| Logistic Regression | 86.05 | 61.54 | 34.04 | 43.84 |
+| Random Forest | 82.99 | 36.36 | 8.51 | 13.79 |
+| XGBoost | 87.41 | 77.78 | 29.79 | 43.08 |
+
+---
+
+# 7. Model Selection
+
+Based on experimental results, XGBoost achieved the highest predictive performance among the evaluated algorithms.
+
+Therefore:
 
 ```text
-Employee Attrition
+Selected Model = XGBoost
 ```
 
-Output:
+Reasons:
 
-```text
-0 = Employee Stays
-
-1 = Employee Leaves
-```
+- Highest accuracy
+- Better precision
+- Strong performance on structured HR data
+- Built-in feature importance capability
 
 ---
 
-# 6. Model Training Process
+# 8. Prediction Pipeline
 
-Workflow:
+The prediction workflow follows:
 
-Dataset
-↓
+```text
+Employee Input
+      ↓
 Preprocessing
-↓
-Feature Engineering
-↓
-Train-Test Split
-↓
-XGBoost Training
-↓
-Evaluation
-↓
-Deployment
-
----
-
-## Train-Test Split
-
-```text
-80% Training Data
-
-20% Testing Data
+      ↓
+Feature Encoding
+      ↓
+Feature Scaling
+      ↓
+XGBoost Prediction
+      ↓
+Probability Score
+      ↓
+Risk Classification
 ```
 
----
+Outputs:
 
-# 7. Hyperparameter Optimization
-
-Bayesian Optimization was used to improve model performance.
-
-Optimized parameters:
-
-- Learning Rate
-- Max Depth
-- Number of Estimators
-- Subsample
-- Column Sample Rate
-
-Benefits:
-
-- Improved accuracy
-- Better generalization
-- Reduced overfitting
+- Prediction
+- Probability
+- Risk Score
+- Risk Level
 
 ---
 
-# 8. Model Evaluation
+# 9. Explainable AI Methodology
 
-Performance metrics used:
+To improve model transparency, explainability techniques are used.
 
-### Accuracy
+Methods:
 
-Measures overall prediction correctness.
+### Feature Importance Analysis
 
-Formula:
+Provides:
 
-Accuracy = Correct Predictions / Total Predictions
+- Important predictors
+- Business interpretation
+- HR insights
 
----
-
-### Precision
-
-Measures correctness of positive predictions.
-
-Formula:
-
-Precision = TP / (TP + FP)
-
----
-
-### Recall
-
-Measures ability to identify actual attrition cases.
-
-Formula:
-
-Recall = TP / (TP + FN)
-
----
-
-### F1 Score
-
-Balances Precision and Recall.
-
-Formula:
-
-F1 = 2 × (Precision × Recall) / (Precision + Recall)
-
-
----
-
-# 9. Model Comparison
-
-| Model               | Accuracy |
-| ------------------- | -------- |
-| Logistic Regression | 86.05%   |
-| Random Forest       | 82.99%   |
-| XGBoost             | 87.41%   |
-
----
-
-# 10. Model Performance
-
-| Metric    | Score  |
-|-----------|--------|
-| Accuracy  | 97.48% |
-| Precision | 98.08% |
-| Recall    | 86.08% |
-| F1 Score  | 91.69% |
-
-Confusion Matrix:
-
-```text
-[[1229    4]
- [  33  204]]
-```
-
----
-
-# 11. Explainable AI
-
-To improve transparency, feature importance analysis was implemented.
-
-Top risk factors identified:
+Top Factors:
 
 - OverTime
 - Monthly Income
@@ -284,108 +238,117 @@ Top risk factors identified:
 - Years Since Last Promotion
 - Environment Satisfaction
 
-Benefits:
-
-- Better HR decision-making
-- Increased trust in predictions
-- Improved interpretability
-
 ---
 
-# 12. Retention Recommendation Engine
+# 10. Recommendation Engine
 
-The system generates personalized HR recommendations.
+A rule-based recommendation system generates retention strategies.
 
 Examples:
 
-### High Overtime
+| Risk Factor | Recommendation |
+|------------|---------------|
+| Overtime | Reduce workload |
+| Low Income | Compensation review |
+| Low Satisfaction | Improve engagement |
+| Promotion Delay | Career growth planning |
 
-Recommendation:
-
-```text
-Reduce overtime workload
-```
-
-### Low Salary
-
-Recommendation:
+Purpose:
 
 ```text
-Review compensation package
-```
-
-### Promotion Delay
-
-Recommendation:
-
-```text
-Discuss career growth opportunities
+Prediction → Action
 ```
 
 ---
 
-# 13. What-If Analysis
+# 11. What-If Analysis
 
 The What-If Analysis module allows HR teams to simulate interventions.
 
-Examples:
+Example Scenarios:
 
-- Increase salary
-- Remove overtime
-- Improve satisfaction
-- Offer promotion
+### Scenario 1
 
-The model recalculates attrition risk for each scenario.
+```text
+Increase Salary
+```
 
-Benefits:
+### Scenario 2
 
-- Scenario planning
-- Retention strategy testing
-- Data-driven decision making
+```text
+Remove Overtime
+```
+
+### Scenario 3
+
+```text
+Improve Job Satisfaction
+```
+
+Outputs:
+
+- Updated risk score
+- Risk comparison
+- Suggested intervention impact
 
 ---
 
-# 14. Gemini HR Assistant
+# 12. Gemini HR Assistant
 
-Google Gemini AI was integrated to provide intelligent HR insights.
+Google Gemini AI is integrated to provide conversational HR assistance.
 
 Capabilities:
 
-- Explain attrition predictions
-- Summarize employee risk
-- Suggest retention actions
-- Answer HR-related questions
+- Explain predictions
+- Answer HR questions
+- Suggest retention strategies
+- Generate employee summaries
 
-Benefits:
+Workflow:
 
-- Natural language interaction
-- Executive-level summaries
-- Enhanced decision support
-
----
-
-# 15. System Deployment
-
-Frontend:
-
-- Streamlit
-
-Backend:
-
-- Python
-
-Model Storage:
-
-- Joblib
-
-Generative AI:
-
-- Google Gemini
+```text
+User Query
+      ↓
+Prompt Engineering
+      ↓
+Gemini AI
+      ↓
+HR Response
+```
 
 ---
 
-# 16. Conclusion
+# 13. Dashboard Implementation
 
-The proposed Employee Attrition Intelligence System successfully predicts employee attrition risk with high accuracy and provides actionable HR insights using machine learning, explainable AI, and generative AI.
+The complete system is implemented using Streamlit.
 
-The system can help organizations reduce attrition, improve employee retention, and support data-driven HR decision-making.
+Dashboard Modules:
+
+1. Home
+2. Prediction
+3. Explainability
+4. Recommendations
+5. What-If Analysis
+6. Gemini HR Assistant
+7. Model Evaluation
+
+---
+
+# 14. System Output
+
+The final system provides:
+
+- Attrition Prediction
+- Risk Classification
+- Feature Importance
+- Retention Recommendations
+- What-If Analysis Results
+- AI-Powered HR Assistance
+
+---
+
+# 15. Conclusion
+
+The proposed methodology combines machine learning, explainable AI, recommendation systems, scenario simulation, and generative AI into a unified Employee Attrition Intelligence System.
+
+Among the evaluated models, XGBoost achieved the best predictive performance and was selected as the final deployment model for supporting HR decision-making and employee retention strategies.

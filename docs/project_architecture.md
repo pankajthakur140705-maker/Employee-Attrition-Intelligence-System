@@ -6,7 +6,7 @@
 
 # 1. System Overview
 
-The Employee Attrition Intelligence System is an AI-powered HR analytics platform designed to predict employee attrition and provide intelligent retention recommendations.
+The Employee Attrition Intelligence System is an AI-powered HR analytics platform designed to predict employee attrition risk and provide intelligent retention recommendations.
 
 The system integrates:
 
@@ -15,17 +15,17 @@ The system integrates:
 - Random Forest
 - XGBoost
 - Explainable AI
-- What-If Analysis
 - Recommendation Engine
+- What-If Analysis
 - Google Gemini AI
 - Streamlit Dashboard
 
 ---
 
 # 2. High-Level Architecture
-```text
 
-`                IBM HR Analytics Dataset
+```text
+                IBM HR Analytics Dataset
                            │
                            ▼
                 Data Preprocessing Layer
@@ -38,8 +38,8 @@ The system integrates:
           ┌──────────┬──────────┬──────────┐
           │          │          │
           ▼          ▼          ▼
-      Logistic     Random      XGBoost
-     Regression    Forest
+    Logistic      Random    XGBoost
+   Regression     Forest
           └──────────┴──────────┴──────────┘
                            │
                            ▼
@@ -55,7 +55,7 @@ The system integrates:
   Risk Assessment   Explainability   Evaluation Module
          │                 │                 │
          ▼                 ▼                 ▼
- Recommendations   Feature Importance   Metrics
+ Recommendations   Feature Importance   Performance Metrics
          │
          ▼
      What-If Analysis
@@ -65,6 +65,7 @@ The system integrates:
          │
          ▼
     HR Decision Support
+```
 
 ---
 
@@ -95,7 +96,7 @@ Structured Employee Data
 
 ## 3.2 Preprocessing Layer
 
-Responsible for:
+### Responsibilities
 
 - Data Cleaning
 - One-Hot Encoding
@@ -114,11 +115,15 @@ File:
 src/preprocessing.py
 ```
 
+Output:
+
+```text
+Preprocessed Feature Matrix
+```
+
 ---
 
 ## 3.3 Machine Learning Layer
-
-### Model
 
 ### Models Evaluated
 
@@ -128,21 +133,24 @@ src/preprocessing.py
 
 ### Model Comparison Results
 
-| Model               | Accuracy (%) |
-|---------------------|--------------|
-| Logistic Regression | 86.05        |
-| Random Forest       | 82.99        |
-| XGBoost             | 87.41        |
+| Model | Accuracy (%) |
+|---------|---------:|
+| Logistic Regression | 86.05 |
+| Random Forest | 82.99 |
+| XGBoost | 87.41 |
 
 ### Final Selected Model
 
-Optimized XGBoost Classifier
+```text
+XGBoost Classifier
+```
 
-Responsibilities:
+### Responsibilities
 
-- Train model
-- Predict attrition
-- Calculate probability scores
+- Model Training
+- Attrition Prediction
+- Probability Estimation
+- Risk Classification
 
 Implementation:
 
@@ -163,24 +171,26 @@ Outputs:
 - Risk Score
 - Risk Level
 - Top Risk Factors
+
 ---
 
 ## 3.4 Explainability Layer
 
-Purpose:
+### Purpose
 
-Provide transparency for predictions.
+Provide transparency and interpretability for model predictions.
 
-Techniques:
+### Techniques Used
 
 - Feature Importance Analysis
 - Risk Factor Identification
+- Business Interpretation
 
 Outputs:
 
-- Top Features
+- Important Features
 - Business Insights
-- HR Interpretation
+- HR Recommendations
 
 Files:
 
@@ -193,16 +203,17 @@ scripts/generate_feature_importance.py
 
 ## 3.5 Recommendation Engine
 
-Purpose:
+### Purpose
 
-Generate personalized retention strategies.
+Generate personalized retention strategies based on employee risk factors.
 
 Examples:
 
 - Reduce overtime
 - Improve work-life balance
-- Salary review
-- Promotion discussion
+- Compensation review
+- Promotion planning
+- Career growth discussion
 
 Implementation:
 
@@ -216,29 +227,35 @@ File:
 src/recommendations.py
 ```
 
+Output:
+
+```text
+Retention Action Plan
+```
+
 ---
 
 ## 3.6 What-If Analysis Engine
 
-Purpose:
+### Purpose
 
-Simulate HR interventions and measure impact.
+Simulate HR interventions and evaluate their impact on attrition risk.
 
-Examples:
+### Example Scenarios
 
-Scenario 1:
+Scenario 1
 
 ```text
 Increase Salary
 ```
 
-Scenario 2:
+Scenario 2
 
 ```text
 Remove Overtime
 ```
 
-Scenario 3:
+Scenario 3
 
 ```text
 Improve Job Satisfaction
@@ -260,20 +277,21 @@ src/whatif.py
 
 ## 3.7 Gemini HR Assistant
 
-Purpose:
+### Purpose
 
-Provide AI-powered HR insights.
+Provide AI-powered HR insights and decision support.
 
-Technology:
+### Technology
 
 Google Gemini AI
 
-Capabilities:
+### Capabilities
 
-- Explain predictions
-- Generate summaries
-- Suggest retention actions
+- Explain attrition predictions
 - Answer HR questions
+- Generate executive summaries
+- Suggest retention strategies
+- Interpret employee risk
 
 File:
 
@@ -299,15 +317,21 @@ User Question
 ---
 
 # 4. Dashboard Architecture
-```text
 
 Built using:
 
+```text
+Streamlit
+```
+
+Dashboard Pages:
+
+```text
 01_Home.py
 
 02_Prediction.py
 
-03_Explainability.py
+03_SHAP_Explainability.py
 
 04_Recommendations.py
 
@@ -316,13 +340,19 @@ Built using:
 06_HR_Chatbot.py
 
 07_Model_Evaluation.py
-
+```
 
 ---
 
 # 5. Data Flow Diagram
 
 ```text
+Employee Input
+      │
+      ▼
+Preprocessing
+      │
+      ▼
 Feature Engineering
       │
       ▼
@@ -338,14 +368,12 @@ Best Model Selection
       ▼
 Risk Prediction
       │
-      ▼
-Risk Score
-      │
       ├────────► Recommendation Engine
       │
       ├────────► What-If Analysis
       │
       ├────────► Feature Importance
+      │
       │
       └────────► Gemini Assistant
                      │
@@ -361,8 +389,6 @@ Risk Score
 Employee_Attrition_System/
 │
 ├── app/
-│   ├── app.py
-│   └── pages/
 │
 ├── src/
 │
@@ -386,11 +412,11 @@ Employee_Attrition_System/
 
 # 7. Security Considerations
 
-Sensitive information:
+### Sensitive Information
 
 - Gemini API Key
 
-Protection:
+### Protection Method
 
 ```text
 .env file
@@ -401,6 +427,12 @@ Excluded using:
 ```text
 .gitignore
 ```
+
+### Security Best Practices
+
+- Do not expose API keys publicly
+- Keep .env excluded from GitHub
+- Store credentials separately from source code
 
 ---
 
@@ -415,12 +447,12 @@ Python Environment
       ▼
 Streamlit Application
       │
-      ├── Optimized XGBoost Model
-      ├── Model Comparison Results
+      ├── XGBoost Model
       ├── Feature Importance
       ├── Recommendation Engine
       ├── What-If Analysis
-      └── Gemini AI
+      ├── Gemini AI
+      └── Model Comparison Results
 ```
 
 ---
@@ -429,19 +461,21 @@ Streamlit Application
 
 Future improvements may include:
 
+- SHAP-Based Explainability
 - Real-Time HR Dashboard
 - Employee Sentiment Analysis
 - Deep Learning Models
 - Cloud Deployment
-- Multi-Company Support
+- Multi-Organization Support
 - Automated Reporting
-- Advanced Explainable AI
-- SHAP-Based Explainability
 - Ensemble Learning Models
-- Real-Time Employee Monitoring
 
 ---
 
 # 10. Conclusion
 
-The proposed architecture integrates model comparison, optimized XGBoost prediction, explainable AI through feature importance analysis, recommendation generation, What-If Analysis, and Gemini-powered HR assistance into a unified Employee Attrition Intelligence System. The platform supports data-driven HR decision-making and achieved a final deployed model accuracy of 97.48%.
+The proposed architecture integrates model comparison, optimized XGBoost prediction, explainable AI through feature importance analysis, recommendation generation, What-If Analysis, and Gemini-powered HR assistance into a unified Employee Attrition Intelligence System.
+
+Among the evaluated machine learning algorithms, XGBoost achieved the highest predictive performance and was selected as the final deployment model.
+
+The architecture supports data-driven HR decision-making and provides actionable employee retention insights through a modern AI-powered analytics platform.

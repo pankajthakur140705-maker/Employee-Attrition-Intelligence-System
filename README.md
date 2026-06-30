@@ -1,6 +1,6 @@
 # 📊 Employee Attrition Intelligence System
 
-An AI-Powered Employee Attrition Prediction and Retention Analytics Platform built using XGBoost, Explainable AI, What-If Analysis, and Gemini AI.
+An AI-Powered Employee Attrition Prediction and Retention Analytics Platform built using Machine Learning, Explainable AI, What-If Analysis, and Google Gemini AI.
 
 ---
 
@@ -25,17 +25,17 @@ This project helps HR teams identify employees at risk of leaving and provides a
 
 # 📂 Dataset
 
-Dataset Used:
+## Dataset Used
 
 IBM HR Analytics Employee Attrition Dataset
 
-Dataset Size:
+## Dataset Size
 
 - Total Employees: 1470
 - Features: 45+
 - Target Variable: Attrition
 
-Target Classes:
+## Target Classes
 
 - Attrition = Yes
 - Attrition = No
@@ -44,90 +44,81 @@ Target Classes:
 
 # 🏗️ System Architecture
 
+```text
 IBM HR Dataset
-↓
+      ↓
 Data Preprocessing
-↓
+      ↓
 Feature Engineering
-↓
+      ↓
 Model Comparison
 ├─ Logistic Regression
 ├─ Random Forest
 └─ XGBoost
-↓
+      ↓
 Best Model Selection
 (XGBoost)
-↓
+      ↓
 Attrition Prediction
-↓
+      ↓
 Feature Importance Analysis
-↓
+      ↓
 Retention Recommendation Engine
-↓
+      ↓
 What-If Analysis
-↓
+      ↓
 Gemini HR Assistant
-↓
+      ↓
 HR Decision Support
+```
 
 ---
 
 # 🤖 Machine Learning Models
 
-Models Evaluated:
+## Models Evaluated
 
-• Logistic Regression
-• Random Forest
-• XGBoost
+- Logistic Regression
+- Random Forest
+- XGBoost
 
-Final Selected Model:
+## Final Selected Model
 
-• Optimized XGBoost Classifier
+- XGBoost Classifier
 
-Problem Type:
+## Problem Type
 
-• Binary Classification
+- Binary Classification
 
-Target Variable:
+## Target Variable
 
-• Employee Attrition
+- Employee Attrition
 
-Explainability:
+## Explainability
 
-• Feature Importance Analysis
+- Feature Importance Analysis
+
 ---
 
-# 📊 Model Comparison
+# 📊 Model Comparison Results
 
-| Model               | Accuracy (%) | Precision (%) | Recall (%) | F1 Score (%) |
-| ------------------- | -----------: | ------------: | ---------: | -----------: |
-| Logistic Regression |        86.05 |         61.54 |      34.04 |        43.84 |
-| Random Forest       |        82.99 |         36.36 |       8.51 |        13.79 |
-| XGBoost (Baseline)  |        87.41 |         77.78 |      29.79 |        43.08 |
+| Model              | Accuracy (%) | Precision (%) | Recall (%) | F1 Score (%) |
+|--------------------|--------------|---------------|------------|--------------|
+| Logistic Regression| 86.05        | 61.54         | 34.04      | 43.84        |
+| Random Forest      | 82.99        | 36.36         | 8.51       | 13.79        |
+| XGBoost            | 87.41        | 77.78         | 29.79      | 43.08        |
 
-## Final Deployed Model Performance
+---
 
-| Metric    | Score (%) |
-| --------- | --------: |
-| Accuracy  |     97.48 |
-| Precision |     98.08 |
-| Recall    |     86.08 |
-| F1 Score  |     91.69 |
+## Model Selection Rationale
 
+Three machine learning algorithms were evaluated:
 
-Confusion Matrix:
- 
-| Actual / Predicted | No Attrition | Attrition |
-| ------------------ | -----------: | --------: |
-| No Attrition       |         1229 |         4 |
-| Attrition          |           33 |       204 |
+- Logistic Regression
+- Random Forest
+- XGBoost
 
-
-
-### Model Selection Rationale
-
-XGBoost achieved the best overall performance among the evaluated machine learning models. After hyperparameter tuning and optimization, the final deployed XGBoost model significantly improved prediction performance and was selected as the production model for the Employee Attrition Intelligence System.
-
+Among the evaluated models, XGBoost achieved the highest predictive performance and was therefore selected as the final model for deployment within the Employee Attrition Intelligence System.
 
 ---
 
@@ -139,7 +130,7 @@ The system provides model explainability through:
 - Risk Factor Identification
 - HR Decision Support
 
-Top Risk Factors:
+## Top Risk Factors
 
 - OverTime
 - Monthly Income
@@ -164,7 +155,7 @@ Displays feature importance and model insights.
 
 Generates personalized retention strategies.
 
-Examples:
+### Examples
 
 - Reduce overtime workload
 - Improve work-life balance
@@ -175,7 +166,7 @@ Examples:
 
 Simulates HR interventions and measures their impact on attrition risk.
 
-Examples:
+### Examples
 
 - Salary increase
 - Overtime removal
@@ -200,41 +191,42 @@ Displays:
 - Recall
 - F1 Score
 - Feature Importance
+- Model Comparison Results
 
 ---
 
 # 🛠️ Technology Stack
 
-Frontend:
+## Frontend
 
 - Streamlit
 
-Machine Learning:
+## Machine Learning
 
 - XGBoost
 - Scikit-Learn
 
-Data Processing:
+## Data Processing
 
 - Pandas
 - NumPy
 
-Visualization:
+## Visualization
 
 - Plotly
 - Matplotlib
 - Seaborn
 
-Explainability:
+## Explainability
 
 - Feature Importance
 - Explainable AI
 
-Generative AI:
+## Generative AI
 
 - Google Gemini AI
 
-Model Storage:
+## Model Storage
 
 - Joblib
 
@@ -247,6 +239,8 @@ Employee_Attrition_System/
 │
 ├── app/
 │   ├── app.py
+│   ├── assets/
+│   │   └── screenshots/
 │   └── pages/
 │       ├── 01_Home.py
 │       ├── 02_Prediction.py
@@ -263,7 +257,8 @@ Employee_Attrition_System/
 │   ├── whatif.py
 │   ├── shap_analysis.py
 │   ├── chatbot.py
-│   └── gemini_chatbot.py
+│   ├── gemini_chatbot.py
+│   └── utils.py
 │
 ├── models/
 │   ├── xgboost_attrition_model.pkl
@@ -275,58 +270,70 @@ Employee_Attrition_System/
 │
 ├── outputs/
 │   ├── eda/
-│   ├── model_evaluation/
-│   ├── reports/
+│   ├── evaluation/
+│   │   ├── feature_importance.csv
+│   │   ├── feature_importance.png
+│   │   └── model_comparison.csv
 │   └── shap/
 │
 ├── scripts/
 │   ├── train_model.py
 │   ├── evaluate_model.py
-│   ├── generate_shap_plots.py
-│   ├── compare_models.py 
-│   └── generate_feature_importance.py
-├── requirements.txt
+│   ├── compare_models.py
+│   ├── generate_feature_importance.py
+│   └── generate_shap_plots.py
+│
+├── docs/
+│   ├── deployment_guide.md
+│   ├── methodology.md
+│   └── project_architecture.md
+│
 ├── README.md
+├── requirements.txt
 ├── .gitignore
 └── .env
 ```
 
+---
+
 # ▶️ Installation
 
-Clone Repository
+## Clone Repository
 
+```bash
 git clone <repository-url>
+```
 
-Move to Project Directory
+## Move to Project Directory
 
+```bash
 cd Employee_Attrition_System
+```
 
-Install Dependencies
+## Install Dependencies
 
+```bash
 pip install -r requirements.txt
+```
 
 ---
 
 # ▶️ Run Application
 
+```bash
 streamlit run app/app.py
+```
 
 ---
 
 # 📊 Dashboard Pages
 
 1. Home Dashboard
-
 2. Employee Attrition Prediction
-
 3. Explainable AI
-
 4. Retention Recommendation Engine
-
 5. What-If Analysis
-
 6. Gemini HR Assistant
-
 7. Model Evaluation Dashboard
 
 ---
@@ -339,7 +346,8 @@ streamlit run app/app.py
 - Automated HR Reporting
 - Multi-Organization Support
 - Cloud Deployment
-- Advanced Explainable AI
+- Advanced Explainable AI (SHAP)
+- Employee Retention Forecasting
 
 ---
 
@@ -359,7 +367,7 @@ This project demonstrates:
 
 # 👨‍💻 Developer
 
-Pankaj Thakur
+**Pankaj Thakur**
 
 B.Tech CSE (AI & Data Science)
 
@@ -369,10 +377,16 @@ Himachal Pradesh, India
 
 LinkedIn:
 
-https://linkedin.com/in/pankajthakur07
+linkedin.com/in/pankajthakur07
 
 ---
 
 # 📜 License
 
 This project is developed for educational and research purposes.
+
+---
+
+# ⭐ Acknowledgement
+
+Special thanks to the IBM HR Analytics Dataset contributors, the open-source community, and Google Gemini AI for enabling the development of this Employee Attrition Intelligence System.
