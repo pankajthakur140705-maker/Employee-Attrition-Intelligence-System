@@ -1,0 +1,102 @@
+# =========================
+# Python
+# =========================
+
+__pycache__/
+*.py[cod]
+*$py.class
+
+# =========================
+# Virtual Environments
+# =========================
+
+venv/
+env/
+ENV/
+.venv/
+
+# =========================
+# Environment Variables
+# =========================
+
+.env
+
+# =========================
+# Jupyter Notebooks
+# =========================
+
+.ipynb_checkpoints/
+
+# =========================
+# VS Code
+# =========================
+
+.vscode/
+
+# =========================
+# Streamlit Cache
+# =========================
+
+.streamlit/secrets.toml
+
+# =========================
+# Logs
+# =========================
+
+*.log
+
+# =========================
+# Temporary Files
+# =========================
+
+*.tmp
+*.bak
+
+# =========================
+# OS Files
+# =========================
+
+.DS_Store
+Thumbs.db
+
+# =========================
+# Model Artifacts (Optional)
+# =========================
+
+# Uncomment if model files are too large
+
+# models/*.pkl
+
+# =========================
+# Generated Outputs
+# =========================
+
+outputs/reports/*
+outputs/shap/*
+outputs/model_evaluation/*
+
+# Keep folders
+!outputs/reports/.gitkeep
+!outputs/shap/.gitkeep
+!outputs/model_evaluation/.gitkeep
+
+# =========================
+# Build Files
+# =========================
+
+dist/
+build/
+*.egg-info/
+
+# =========================
+# Pytest
+# =========================
+
+.pytest_cache/
+
+# =========================
+# Coverage
+# =========================
+
+.coverage
+htmlcov/
