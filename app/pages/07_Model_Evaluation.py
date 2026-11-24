@@ -54,13 +54,13 @@ Model: XGBoost Classifier
 
 Dataset: IBM HR Analytics Employee Attrition Dataset
 
-Accuracy: 97.48%
+Accuracy: 87.41%
 
-Precision: 98.08%
+Precision: 77.78%
 
-Recall: 86.08%
+Recall: 29.79%
 
-F1 Score: 91.69%
+F1 Score: 43.08%
 
 The model demonstrates strong predictive performance and can effectively identify employees at risk of attrition.
 """)
