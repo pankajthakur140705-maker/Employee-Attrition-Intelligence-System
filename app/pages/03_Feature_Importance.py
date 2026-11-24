@@ -1,188 +1,314 @@
-import streamlit as st
-import pandas as pd
-import os
+
+import sys
 from pathlib import Path
 
-# Page configuration
+import streamlit as st
+import pandas as pd
+
+# Ensure project root is available for imports
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+from src.prediction import (
+    get_feature_importance,
+    get_model_status
+)
+
+
+# --------------------------------------------------
+# PAGE CONFIGURATION
+# --------------------------------------------------
+
 st.set_page_config(
     page_title="Feature Importance",
     page_icon="📊",
     layout="wide"
 )
 
-# Project paths
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
-IMAGE_PATH = PROJECT_ROOT / "outputs/evaluation/feature_importance.png"
-CSV_PATH = PROJECT_ROOT / "outputs/evaluation/feature_importance.csv"
+# --------------------------------------------------
+# PAGE HEADER
+# --------------------------------------------------
 
-# Page title
 st.title("📊 Feature Importance Dashboard")
 
-st.markdown("""
-### Explainable Machine Learning
+st.markdown(
+    """
+    ### XGBoost Model Interpretability
 
-Feature Importance helps us understand which employee attributes
-have the greatest influence on the XGBoost model's predictions.
+    This dashboard presents the global feature importance
+    extracted from the trained XGBoost model.
 
-It ranks different employee characteristics according to their
-contribution to the model's decision-making process.
-""")
+    It ranks employee attributes according to their relative
+    importance within the model.
+    """
+)
 
-st.markdown("---")
+st.divider()
 
-# Feature importance overview
-st.header("🧠 Understanding Feature Importance")
 
-col1, col2 = st.columns(2)
+# --------------------------------------------------
+# MODEL STATUS
+# --------------------------------------------------
 
-with col1:
-    st.info("""
-    **Features influencing attrition prediction**
+st.header("🧠 Model Information")
 
-    - Total Working Years
-    - Stock Option Level
-    - Overtime
-    - Job Role
-    - Years in Current Role
-    - Age
-    - Environment Satisfaction
-    - Job Satisfaction
-    """)
+try:
+    model_status = get_model_status()
 
-with col2:
-    st.success("""
-    **Why Feature Importance is useful**
+    if model_status.get("loaded", False):
+        st.success("XGBoost model loaded successfully.")
+    else:
+        st.error("XGBoost model is not available.")
 
-    - Identifies influential employee attributes.
-    - Helps HR understand model behaviour.
-    - Supports data-driven HR decisions.
-    - Highlights important retention factors.
-    - Improves model interpretability.
-    """)
+        if model_status.get("error"):
+            st.error(str(model_status["error"]))
 
-st.markdown("---")
+        st.stop()
 
-# Feature Importance visualization
-st.header("📊 Feature Importance Visualization")
+except Exception as error:
+    st.error(f"Unable to check model status: {error}")
+    st.stop()
 
-if IMAGE_PATH.exists():
 
-    st.subheader("Top 15 Important Features")
+# --------------------------------------------------
+# LOAD FEATURE IMPORTANCE
+# --------------------------------------------------
 
-    st.image(
-        str(IMAGE_PATH),
-        use_container_width=True
+try:
+    importance_df = get_feature_importance()
+
+    if importance_df is None or importance_df.empty:
+        st.warning("Feature importance data is not available.")
+        st.stop()
+
+    required_columns = {"Feature", "Importance"}
+
+    if not required_columns.issubset(importance_df.columns):
+        st.error(
+            "Feature importance data must contain "
+            "'Feature' and 'Importance' columns."
+        )
+        st.stop()
+
+    importance_df = importance_df[
+        ["Feature", "Importance"]
+    ].copy()
+
+    importance_df["Importance"] = pd.to_numeric(
+        importance_df["Importance"],
+        errors="coerce"
     )
 
-    st.caption(
-        "Features are ranked according to their importance "
-        "in the trained XGBoost model."
+    importance_df = importance_df.dropna(
+        subset=["Importance"]
     )
 
-else:
-
-    st.warning(
-        "Feature importance image not found. "
-        "Please run the feature importance generation script."
-    )
-
-st.markdown("---")
-
-# Feature importance data
-st.header("📋 Feature Importance Ranking")
-
-if CSV_PATH.exists():
-
-    importance_df = pd.read_csv(CSV_PATH)
+    importance_df = importance_df[
+        importance_df["Importance"] >= 0
+    ]
 
     importance_df = importance_df.sort_values(
         by="Importance",
         ascending=False
+    ).reset_index(drop=True)
+
+    if importance_df.empty:
+        st.warning("No valid feature importance values were found.")
+        st.stop()
+
+    total_importance = importance_df["Importance"].sum()
+
+    if total_importance <= 0:
+        st.warning(
+            "The model returned zero feature importance values."
+        )
+        st.stop()
+
+    # Convert importance values into relative percentages
+    importance_df["Importance (%)"] = (
+        importance_df["Importance"] / total_importance
+    ) * 100
+
+except Exception as error:
+    st.error(
+        f"Unable to load feature importance: {error}"
+    )
+    st.stop()
+
+
+# --------------------------------------------------
+# FEATURE IMPORTANCE OVERVIEW
+# --------------------------------------------------
+
+st.header("📈 Feature Importance Overview")
+
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    st.metric(
+        "Total Features",
+        len(importance_df)
     )
 
-    # Display top 10 features
-    st.subheader("Top 10 Influential Features")
-
-    top_features = importance_df.head(10).copy()
-
-    top_features["Importance"] = (
-        top_features["Importance"] * 100
-    ).round(2)
-
-    top_features = top_features.rename(
-        columns={
-            "Feature": "Employee Attribute",
-            "Importance": "Importance (%)"
-        }
-    )
-
-    st.dataframe(
-        top_features,
-        use_container_width=True,
-        hide_index=True
-    )
-
-    st.markdown("---")
-
-    # Feature selection
-    st.subheader("Explore Individual Features")
-
-    selected_feature = st.selectbox(
-        "Select an employee attribute:",
-        importance_df["Feature"].tolist()
-    )
-
-    selected_value = importance_df.loc[
-        importance_df["Feature"] == selected_feature,
-        "Importance"
-    ].iloc[0]
+with col2:
+    top_feature = importance_df.iloc[0]["Feature"]
 
     st.metric(
-        label=f"Importance of {selected_feature}",
-        value=f"{selected_value * 100:.2f}%"
+        "Most Important Feature",
+        str(top_feature)
     )
 
-else:
+with col3:
+    top_importance = importance_df.iloc[0]["Importance (%)"]
 
-    st.warning(
-        "Feature importance CSV not found."
+    st.metric(
+        "Top Feature Importance",
+        f"{top_importance:.2f}%"
     )
 
-st.markdown("---")
 
-# Interpretation guide
+st.divider()
+
+
+# --------------------------------------------------
+# TOP 15 FEATURE IMPORTANCE CHART
+# --------------------------------------------------
+
+st.header("📊 Feature Importance Visualization")
+
+st.subheader("Top 15 Important Features")
+
+top_15 = importance_df.head(15).copy()
+
+chart_data = top_15.set_index("Feature")[
+    "Importance (%)"
+]
+
+st.bar_chart(
+    chart_data,
+    horizontal=True
+)
+
+st.caption(
+    "The chart displays the 15 highest-ranked features "
+    "based on the trained XGBoost model's feature importance."
+)
+
+
+st.divider()
+
+
+# --------------------------------------------------
+# FEATURE IMPORTANCE TABLE
+# --------------------------------------------------
+
+st.header("📋 Feature Importance Ranking")
+
+display_df = importance_df.copy()
+
+display_df.insert(
+    0,
+    "Rank",
+    range(1, len(display_df) + 1)
+)
+
+display_df["Importance (%)"] = (
+    display_df["Importance (%)"].round(2)
+)
+
+display_df = display_df[
+    ["Rank", "Feature", "Importance (%)"]
+]
+
+st.dataframe(
+    display_df,
+    use_container_width=True,
+    hide_index=True
+)
+
+
+st.divider()
+
+
+# --------------------------------------------------
+# INDIVIDUAL FEATURE EXPLORATION
+# --------------------------------------------------
+
+st.header("🔍 Explore Individual Features")
+
+selected_feature = st.selectbox(
+    "Select an employee attribute:",
+    importance_df["Feature"].tolist()
+)
+
+selected_row = importance_df.loc[
+    importance_df["Feature"] == selected_feature
+].iloc[0]
+
+selected_importance = selected_row["Importance (%)"]
+
+st.metric(
+    label=f"Importance of {selected_feature}",
+    value=f"{selected_importance:.2f}%"
+)
+
+
+st.divider()
+
+
+# --------------------------------------------------
+# INTERPRETATION GUIDE
+# --------------------------------------------------
+
 st.header("📖 Interpretation Guide")
 
-st.markdown("""
-### How to interpret Feature Importance?
+st.markdown(
+    """
+    **Higher Feature Importance**
 
-**Higher Importance Score**
+    A higher score means that the feature has greater relative
+    importance in the trained model compared with other features.
 
-A feature with a higher score has a greater influence
-on the model's predictions compared with other features.
+    **Lower Feature Importance**
 
-**Lower Importance Score**
+    A lower score indicates that the feature has less relative
+    importance in the model.
 
-A feature with a lower score contributes less to the
-model's overall prediction process.
+    **Zero Feature Importance**
 
-**Zero Importance**
+    A zero score means that the model's reported importance
+    for that feature is zero.
 
-The model did not use that feature to make its
-tree-based predictions.
+    **Important Limitation**
 
-**Important Note:**
+    Feature importance does not explain whether a feature
+    increases or decreases attrition probability.
 
-Feature Importance indicates the relative influence of
-features. It does not tell us whether a feature increases
-or decreases employee attrition risk.
-""")
+    It also does not establish a causal relationship between
+    an employee attribute and attrition.
+    """
+)
 
-st.markdown("---")
 
-st.success("""
-✅ Feature Importance Analysis helps HR managers identify
-the employee attributes that the XGBoost model considers
-most influential when predicting employee attrition.
-""")
+st.divider()
+
+
+# --------------------------------------------------
+# FINAL NOTE
+# --------------------------------------------------
+
+st.success(
+    """
+    Feature Importance provides a global view of the employee
+    attributes used by the XGBoost model. HR managers can use
+    these insights to better understand model behaviour and
+    support data-driven retention decisions.
+    """
+)
+
+st.caption(
+    "Source: Feature importance extracted from the deployed XGBoost model."
+)

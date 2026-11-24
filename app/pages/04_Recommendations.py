@@ -1,5 +1,17 @@
+
+import sys
+from pathlib import Path
+
 import streamlit as st
+
+# Ensure project root is available for imports
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
 from src.recommendations import generate_recommendations
+
 
 st.set_page_config(
     page_title="Retention Recommendation Engine",
@@ -9,215 +21,207 @@ st.set_page_config(
 
 st.title("🎯 Retention Recommendation Engine")
 
-st.markdown("""
-Generate personalized employee retention strategies based on key HR risk indicators.
-""")
+st.markdown(
+    """
+    Generate rule-based employee retention recommendations using
+    important HR indicators from the Employee Attrition Intelligence System.
+    """
+)
 
-st.markdown("---")
+st.divider()
+
+st.subheader("👤 Employee Information")
 
 col1, col2 = st.columns(2)
 
 with col1:
-
     overtime = st.selectbox(
         "OverTime",
-        ["No", "Yes"]
+        ["No", "Yes"],
+        help="Whether the employee regularly works overtime."
     )
 
     monthly_income = st.number_input(
-        "Monthly Income",
-        min_value=1000,
-        max_value=100000,
-        value=10000
+        "Monthly Income (₹)",
+        min_value=0,
+        max_value=1000000,
+        value=10000,
+        step=500
+    )
+
+    job_satisfaction = st.slider(
+        "Job Satisfaction",
+        min_value=1,
+        max_value=4,
+        value=3
+    )
+
+with col2:
+    work_life_balance = st.slider(
+        "Work-Life Balance",
+        min_value=1,
+        max_value=4,
+        value=3
     )
 
     years_since_promotion = st.slider(
         "Years Since Last Promotion",
-        0,
-        15,
-        2
+        min_value=0,
+        max_value=40,
+        value=2
     )
 
-with col2:
+st.divider()
 
-    job_satisfaction = st.slider(
-        "Job Satisfaction",
-        1,
-        4,
-        3
+st.subheader("🏢 Organizational Salary Information")
+
+organizational_average_income = st.number_input(
+    "Organizational Average Monthly Income (₹)",
+    min_value=0,
+    max_value=1000000,
+    value=0,
+    step=500,
+    help=(
+        "Enter the actual organizational average monthly income. "
+        "Leave as 0 if this information is unavailable."
     )
+)
 
-    environment_satisfaction = st.slider(
-        "Environment Satisfaction",
-        1,
-        4,
-        3
-    )
+st.caption(
+    "Salary-based recommendations are generated only when a valid "
+    "organizational average is provided."
+)
 
-if st.button("🚀 Generate Recommendations", use_container_width=True):
+if st.button(
+    "🚀 Generate Recommendations",
+    use_container_width=True,
+    type="primary"
+):
 
     employee = {
         "OverTime": overtime,
         "MonthlyIncome": monthly_income,
         "JobSatisfaction": job_satisfaction,
-        "EnvironmentSatisfaction": environment_satisfaction,
+        "WorkLifeBalance": work_life_balance,
         "YearsSinceLastPromotion": years_since_promotion
     }
 
-    recommendations = generate_recommendations(employee)
+    average_income = (
+        organizational_average_income
+        if organizational_average_income > 0
+        else None
+    )
 
-    st.markdown("---")
+    recommendations = generate_recommendations(
+        employee,
+        organizational_average_income=average_income
+    )
 
-    st.subheader("📋 Employee Risk Profile")
+    st.session_state["retention_recommendations"] = recommendations
+    st.session_state["retention_employee"] = employee
+    st.session_state["retention_average_income"] = average_income
 
-    col_a, col_b, col_c = st.columns(3)
 
-    with col_a:
+# Display results after generation
+if "retention_recommendations" in st.session_state:
+
+    employee = st.session_state["retention_employee"]
+    recommendations = st.session_state["retention_recommendations"]
+    average_income = st.session_state["retention_average_income"]
+
+    st.divider()
+
+    st.subheader("📋 Employee Profile")
+
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
         st.metric(
             "Monthly Income",
-            f"₹{monthly_income:,}"
+            f"₹{employee['MonthlyIncome']:,}"
         )
 
-    with col_b:
+    with col2:
         st.metric(
             "Job Satisfaction",
-            f"{job_satisfaction}/4"
+            f"{employee['JobSatisfaction']}/4"
         )
 
-    with col_c:
+    with col3:
         st.metric(
-            "Promotion Gap",
-            f"{years_since_promotion} Years"
+            "Work-Life Balance",
+            f"{employee['WorkLifeBalance']}/4"
         )
 
-    st.markdown("---")
+    col4, col5 = st.columns(2)
+
+    with col4:
+        st.metric(
+            "OverTime",
+            employee["OverTime"]
+        )
+
+    with col5:
+        st.metric(
+            "Years Since Promotion",
+            employee["YearsSinceLastPromotion"]
+        )
+
+    if average_income is not None:
+        st.caption(
+            f"Organizational average monthly income: ₹{average_income:,}"
+        )
+
+    st.divider()
 
     st.subheader("💡 Recommended Retention Actions")
 
-    if len(recommendations) == 0:
-
-        st.success(
-            """
-            Employee appears stable.
-
-            No immediate retention intervention required.
-            """
+    if (
+        len(recommendations) == 1
+        and recommendations[0].startswith(
+            "No retention concerns were identified"
         )
+    ):
+        st.success(recommendations[0])
 
     else:
-
-        for idx, rec in enumerate(
+        for index, recommendation in enumerate(
             recommendations,
             start=1
         ):
-            st.success(
-                f"{idx}. {rec}"
+            st.info(
+                f"**{index}.** {recommendation}"
             )
 
-    st.markdown("---")
+    st.divider()
 
-    st.subheader("🧠 HR Action Summary")
+    st.subheader("🧠 HR Summary")
 
-    risk_count = 0
-
-    if overtime == "Yes":
-        risk_count += 1
+    if len(recommendations) > 1 or not recommendations[0].startswith(
+        "No retention concerns were identified"
+    ):
         st.warning(
-            "⚠️ Overtime is increasing attrition risk."
+            f"{len(recommendations)} retention recommendation(s) "
+            "were generated based on the employee's profile."
         )
-
-    if monthly_income < 5000:
-        risk_count += 1
-        st.warning(
-            "⚠️ Compensation review recommended."
-        )
-
-    if job_satisfaction <= 2:
-        risk_count += 1
-        st.warning(
-            "⚠️ Employee engagement initiatives required."
-        )
-
-    if environment_satisfaction <= 2:
-        risk_count += 1
-        st.warning(
-            "⚠️ Workplace environment improvement recommended."
-        )
-
-    if years_since_promotion >= 5:
-        risk_count += 1
-        st.warning(
-            "⚠️ Career growth discussion recommended."
-        )
-
-    st.markdown("---")
-
-    st.subheader("📊 Overall Retention Status")
-
-    if risk_count >= 4:
-
-        st.error(
-            "🔴 High Retention Risk - Immediate HR intervention required."
-        )
-
-    elif risk_count >= 2:
-
-        st.warning(
-            "🟠 Moderate Retention Risk - Monitor employee closely."
-        )
-
     else:
-
         st.success(
-            "🟢 Low Retention Risk - Employee profile appears healthy."
+            "No concerns were identified by the configured "
+            "recommendation rules."
         )
 
-    st.markdown("---")
+    st.caption(
+        """
+        Note: These recommendations are generated using predefined,
+        rule-based HR conditions. They are not an independent machine
+        learning prediction or a quantified attrition-risk score.
+        """
+    )
 
-    st.subheader("🎯 Recommended HR Strategy")
+    st.divider()
 
-    if risk_count >= 4:
-
-        st.info(
-            """
-            Priority Actions:
-
-            • Salary Review
-
-            • Reduce Overtime
-
-            • Promotion Discussion
-
-            • Employee Engagement Program
-
-            • Manager Feedback Session
-            """
-        )
-
-    elif risk_count >= 2:
-
-        st.info(
-            """
-            Suggested Actions:
-
-            • Regular Check-ins
-
-            • Recognition Programs
-
-            • Career Development Discussions
-            """
-        )
-
-    else:
-
-        st.info(
-            """
-            Maintain Current Strategy:
-
-            • Employee Recognition
-
-            • Learning Opportunities
-
-            • Positive Work Environment
-            """
-        )
+    if st.button("🔄 Reset Recommendations"):
+        st.session_state.pop("retention_recommendations", None)
+        st.session_state.pop("retention_employee", None)
+        st.session_state.pop("retention_average_income", None)
+        st.rerun()

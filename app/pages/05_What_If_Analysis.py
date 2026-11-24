@@ -1,7 +1,26 @@
+
+import sys
+from pathlib import Path
+
 import streamlit as st
 import pandas as pd
+
+# --------------------------------------------------
+# PROJECT IMPORTS
+# --------------------------------------------------
+
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
 from src.preprocessing import create_employee_record
 from src.prediction import predict_attrition
+
+
+# --------------------------------------------------
+# PAGE CONFIGURATION
+# --------------------------------------------------
 
 st.set_page_config(
     page_title="What-If Analysis",
@@ -11,33 +30,81 @@ st.set_page_config(
 
 st.title("🔍 What-If Analysis")
 
-st.markdown("""
-Simulate HR interventions and evaluate their impact on employee attrition risk.
-""")
+st.markdown(
+    """
+    Simulate HR retention interventions and evaluate their
+    impact on employee attrition probability.
 
-st.markdown("---")
+    Compare the current employee profile with different
+    intervention scenarios to understand potential changes
+    in predicted attrition risk.
+    """
+)
+
+st.divider()
+
+
+# --------------------------------------------------
+# HELPER FUNCTIONS
+# --------------------------------------------------
+
+def get_attrition_probability(employee_data):
+    """
+    Convert employee information into model input
+    and return attrition prediction results.
+    """
+
+    input_df = create_employee_record(employee_data)
+
+    result = predict_attrition(input_df)
+
+    if not isinstance(result, (tuple, list)) or len(result) != 4:
+        raise ValueError(
+            "Unexpected prediction output. Expected four values."
+        )
+
+    prediction, probability, risk_score, risk_level = result
+
+    return (
+        float(probability),
+        float(risk_score),
+        risk_level,
+        int(prediction)
+    )
+
+
+# --------------------------------------------------
+# EMPLOYEE INFORMATION
+# --------------------------------------------------
+
+st.header("👤 Employee Information")
 
 col1, col2 = st.columns(2)
 
 with col1:
 
-    st.subheader("Current Scenario")
+    st.subheader("Employee Details")
 
-    age = st.slider("Age", 18, 60, 30)
+    age = st.slider(
+        "Age",
+        min_value=18,
+        max_value=60,
+        value=30
+    )
 
     monthly_income = st.slider(
-        "Monthly Income",
-        1000,
-        50000,
-        10000,
-        500
+        "Monthly Income (₹)",
+        min_value=1000,
+        max_value=100000,
+        value=10000,
+        step=500
     )
 
     distance = st.slider(
         "Distance From Home",
-        1,
-        30,
-        5
+        min_value=1,
+        max_value=30,
+        value=5
     )
 
     overtime = st.selectbox(
@@ -45,29 +112,37 @@ with col1:
         ["No", "Yes"]
     )
 
+
 with col2:
 
     st.subheader("Employee Experience")
 
     job_satisfaction = st.slider(
         "Job Satisfaction",
-        1,
-        4,
-        3
+        min_value=1,
+        max_value=4,
+        value=3
     )
 
     work_life_balance = st.slider(
-        "Work Life Balance",
-        1,
-        4,
-        3
+        "Work-Life Balance",
+        min_value=1,
+        max_value=4,
+        value=3
+    )
+
+    environment_satisfaction = st.slider(
+        "Environment Satisfaction",
+        min_value=1,
+        max_value=4,
+        value=3
     )
 
     years_since_promotion = st.slider(
         "Years Since Last Promotion",
-        0,
-        15,
-        2
+        min_value=0,
+        max_value=15,
+        value=2
     )
 
     job_role = st.selectbox(
@@ -84,196 +159,349 @@ with col2:
         ]
     )
 
-if st.button("🚀 Run What-If Analysis"):
 
-    employee_data = {
+# --------------------------------------------------
+# RUN INTERVENTION SIMULATION
+# --------------------------------------------------
+
+st.divider()
+
+if st.button(
+    "🚀 Run Intervention Simulation",
+    use_container_width=True,
+    type="primary"
+):
+
+    # Original employee profile
+    original_employee = {
         "Age": age,
         "MonthlyIncome": monthly_income,
         "DistanceFromHome": distance,
         "OverTime": overtime,
         "JobSatisfaction": job_satisfaction,
         "WorkLifeBalance": work_life_balance,
+        "EnvironmentSatisfaction": environment_satisfaction,
         "YearsSinceLastPromotion": years_since_promotion,
         "JobRole": job_role
     }
 
-    input_df = create_employee_record(
-        employee_data
-    )
+    # --------------------------------------------------
+    # DEFINE INTERVENTION SCENARIOS
+    # --------------------------------------------------
 
-    result = predict_attrition(input_df)
+    scenarios = {
 
-    if len(result) == 4:
-        prediction, probability, risk_score, risk_level = result
-    else:
-        prediction, probability = result
-        risk_score = round(probability * 100, 2)
+        "Current Employee Profile":
+            original_employee.copy(),
 
-        if risk_score >= 70:
-            risk_level = "High"
-        elif risk_score >= 40:
-            risk_level = "Medium"
-        else:
-            risk_level = "Low"
+        "Salary Increase (+10%)": {
+            **original_employee,
+            "MonthlyIncome": round(
+                monthly_income * 1.10
+            )
+        },
 
-    st.markdown("---")
+        "Overtime Removed": {
+            **original_employee,
+            "OverTime": "No"
+        },
 
-    st.subheader("📊 Risk Assessment")
+        "Promotion Opportunity": {
+            **original_employee,
+            "YearsSinceLastPromotion": 0
+        },
 
-    c1, c2, c3 = st.columns(3)
+        "Combined Intervention": {
+            **original_employee,
+            "MonthlyIncome": round(
+                monthly_income * 1.10
+            ),
+            "OverTime": "No",
+            "YearsSinceLastPromotion": 0
+        }
+    }
 
-    with c1:
-        st.metric(
-            "Risk Score",
-            f"{risk_score:.2f}%"
+    results = []
+
+    # --------------------------------------------------
+    # GENERATE PREDICTIONS
+    # --------------------------------------------------
+
+    try:
+
+        with st.spinner(
+            "Calculating employee intervention scenarios..."
+        ):
+
+            for scenario_name, scenario_employee in scenarios.items():
+
+                (
+                    probability,
+                    risk_score,
+                    risk_level,
+                    prediction
+                ) = get_attrition_probability(
+                    scenario_employee
+                )
+
+                results.append({
+
+                    "Scenario": scenario_name,
+
+                    "Attrition Probability (%)": round(
+                        risk_score, 2
+                    ),
+
+                    "Risk Level": risk_level,
+
+                    "Prediction": (
+                        "Likely Leave"
+                        if prediction == 1
+                        else "Likely Stay"
+                    )
+                })
+
+        results_df = pd.DataFrame(results)
+
+        # --------------------------------------------------
+        # CALCULATE RETENTION IMPROVEMENT
+        # --------------------------------------------------
+
+        baseline_probability = results_df.iloc[0][
+            "Attrition Probability (%)"
+        ]
+
+        results_df["Retention Improvement (%)"] = (
+            baseline_probability
+            - results_df["Attrition Probability (%)"]
+        ).round(2)
+
+        # Store simulation results
+        st.session_state["what_if_results"] = results_df
+
+        st.session_state["what_if_baseline"] = (
+            baseline_probability
         )
 
-    with c2:
-        st.metric(
-            "Risk Level",
-            risk_level
+        st.session_state["what_if_employee"] = (
+            original_employee
         )
 
-    with c3:
-        st.metric(
-            "Prediction",
-            "Likely Leave" if prediction == 1 else "Likely Stay"
-        )
+    except Exception as error:
 
-    st.progress(
-        min(int(risk_score), 100)
-    )
-
-    if risk_level == "High":
         st.error(
-            "🔴 High Attrition Risk"
+            f"Unable to complete simulation: {error}"
         )
 
-    elif risk_level == "Medium":
-        st.warning(
-            "🟠 Medium Attrition Risk"
-        )
 
-    else:
-        st.success(
-            "🟢 Low Attrition Risk"
-        )
+# --------------------------------------------------
+# DISPLAY SIMULATION RESULTS
+# --------------------------------------------------
 
-    st.markdown("---")
+if "what_if_results" in st.session_state:
 
-    st.subheader("👤 Scenario Summary")
+    results_df = st.session_state["what_if_results"]
+
+    baseline_probability = st.session_state[
+        "what_if_baseline"
+    ]
+
+    st.divider()
+
+    st.header("📊 Intervention Simulation Results")
+
+    st.metric(
+        "Current Attrition Probability",
+        f"{baseline_probability:.2f}%"
+    )
+
+    st.caption(
+        "All intervention scenarios are compared "
+        "against the original employee profile."
+    )
 
     st.dataframe(
-        pd.DataFrame(
-            employee_data.items(),
-            columns=["Feature", "Value"]
-        ),
-        use_container_width=True
+        results_df,
+        use_container_width=True,
+        hide_index=True
     )
 
-    st.markdown("---")
 
-    st.subheader("💡 Business Insights")
+    # --------------------------------------------------
+    # ATTRITION PROBABILITY CHART
+    # --------------------------------------------------
 
-    insights = []
+    st.divider()
 
-    if overtime == "Yes":
-        insights.append(
-            "Overtime is significantly increasing attrition risk."
+    st.subheader("📉 Attrition Probability Comparison")
+
+    chart_data = results_df.set_index(
+        "Scenario"
+    )["Attrition Probability (%)"]
+
+    st.bar_chart(
+        chart_data,
+        horizontal=True
+    )
+
+
+    # --------------------------------------------------
+    # RETENTION IMPROVEMENT
+    # --------------------------------------------------
+
+    st.divider()
+
+    st.subheader("🎯 Retention Improvement")
+
+    intervention_results = results_df.iloc[1:].copy()
+
+    best_index = intervention_results[
+        "Retention Improvement (%)"
+    ].idxmax()
+
+    best_scenario = intervention_results.loc[
+        best_index
+    ]
+
+    best_improvement = best_scenario[
+        "Retention Improvement (%)"
+    ]
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+
+        st.metric(
+            "Best Intervention",
+            best_scenario["Scenario"]
         )
 
-    if monthly_income < 5000:
-        insights.append(
-            "Compensation level is below recommended threshold."
+    with col2:
+
+        st.metric(
+            "Probability Reduction",
+            f"{best_improvement:.2f} percentage points"
         )
 
-    if job_satisfaction <= 2:
-        insights.append(
-            "Employee satisfaction is critically low."
-        )
-
-    if work_life_balance <= 2:
-        insights.append(
-            "Work-life balance concerns detected."
-        )
-
-    if years_since_promotion >= 5:
-        insights.append(
-            "Promotion delay may impact retention."
-        )
-
-    if len(insights) == 0:
+    if best_improvement > 0:
 
         st.success(
-            "No major risk indicators detected."
+            f"The {best_scenario['Scenario']} scenario "
+            f"produced the largest predicted reduction "
+            f"in attrition probability."
+        )
+
+    elif best_improvement == 0:
+
+        st.info(
+            "The tested interventions did not change "
+            "the predicted attrition probability."
         )
 
     else:
 
-        for item in insights:
-            st.warning(item)
-
-    st.markdown("---")
-
-    st.subheader("🎯 Recommended HR Actions")
-
-    actions = []
-
-    if overtime == "Yes":
-        actions.append("Reduce overtime workload")
-
-    if monthly_income < 5000:
-        actions.append("Review compensation package")
-
-    if job_satisfaction <= 2:
-        actions.append("Conduct employee engagement session")
-
-    if work_life_balance <= 2:
-        actions.append("Improve work-life balance policies")
-
-    if years_since_promotion >= 5:
-        actions.append("Discuss promotion opportunities")
-
-    if len(actions) == 0:
-
-        st.success(
-            "No immediate retention action required."
+        st.warning(
+            "The tested interventions increased the "
+            "predicted attrition probability."
         )
 
-    else:
 
-        for action in actions:
-            st.info(f"✅ {action}")
+    # --------------------------------------------------
+    # BUSINESS INSIGHTS
+    # --------------------------------------------------
 
-    st.markdown("---")
+    st.divider()
 
-    st.subheader("🧠 Executive Summary")
+    st.header("💡 Business Insights")
 
-    if risk_score >= 70:
+    for _, row in intervention_results.iterrows():
 
-        st.error("""
-High attrition risk detected.
+        improvement = row[
+            "Retention Improvement (%)"
+        ]
 
-Immediate HR intervention is recommended.
-Employee retention initiatives should focus on
-compensation, engagement, career growth,
-and workload management.
-""")
+        if improvement > 0:
 
-    elif risk_score >= 40:
+            st.success(
+                f"**{row['Scenario']}**: Predicted attrition "
+                f"probability decreased by "
+                f"{improvement:.2f} percentage points."
+            )
 
-        st.warning("""
-Moderate attrition risk detected.
+        elif improvement < 0:
 
-Regular monitoring and proactive engagement
-are recommended.
-""")
+            st.warning(
+                f"**{row['Scenario']}**: Predicted attrition "
+                f"probability increased by "
+                f"{abs(improvement):.2f} percentage points."
+            )
 
-    else:
+        else:
 
-        st.success("""
-Low attrition risk detected.
+            st.info(
+                f"**{row['Scenario']}**: No change in "
+                f"predicted attrition probability."
+            )
 
-Current employee conditions appear healthy.
-Continue existing retention practices.
-""")
+
+    # --------------------------------------------------
+    # INTERVENTION DETAILS
+    # --------------------------------------------------
+
+    st.divider()
+
+    st.header("📋 Intervention Details")
+
+    st.markdown(
+        """
+        | Intervention | Simulated Change |
+        |---|---|
+        | Salary Increase | Monthly income increased by 10% |
+        | Overtime Removed | OverTime changed to No |
+        | Promotion Opportunity | Years since last promotion set to 0 |
+        | Combined Intervention | All three changes applied together |
+        """
+    )
+
+
+    # --------------------------------------------------
+    # FINAL NOTE
+    # --------------------------------------------------
+
+    st.divider()
+
+    st.info(
+        """
+        **Important:** These results are model-based simulations.
+        They indicate how the trained model's predicted attrition
+        probability changes when employee attributes are modified.
+
+        They do not guarantee employee retention or establish
+        a causal relationship between an HR intervention
+        and actual attrition.
+        """
+    )
+
+
+    # --------------------------------------------------
+    # RESET SIMULATION
+    # --------------------------------------------------
+
+    if st.button(
+        "🔄 Clear Simulation Results",
+        use_container_width=True
+    ):
+
+        st.session_state.pop(
+            "what_if_results", None
+        )
+
+        st.session_state.pop(
+            "what_if_baseline", None
+        )
+
+        st.session_state.pop(
+            "what_if_employee", None
+        )
+
+        st.rerun()
